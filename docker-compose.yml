@@ -1,0 +1,43 @@
+services:
+  # MongoDB Service Using mongo 7 and mapping data to a volume
+  mongodb:
+    image: mongo:7.0
+    container_name: employee_mongodb
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_DATABASE: employee_db
+    #mapping data to a volume
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - employee_network
+
+  # Express App Service
+  app:
+    image: gmaldo/employee_app:1.0.0 
+    build: .
+    container_name: employee_app
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - MONGODB_URI=mongodb://mongodb:27017/employee_db
+    depends_on:
+      - mongodb
+    networks:
+      - employee_network
+
+
+# Volumes
+volumes:
+  mongodb_data:
+
+# Networks
+#both using same network
+
+networks:
+  employee_network:
+    driver: bridge
