@@ -78,6 +78,7 @@ docker-compose down
 
 # Parar y eliminar datos persistentes
 docker-compose down -v
+```
 
 ### Ventajas del Docker Compose
 - **Networking automático:** Los contenedores se comunican por nombre
