@@ -32,8 +32,13 @@ docker build -t employee-app .
 docker run -e MONGODB_URI=mongodb://172.17.0.2 -p 3000:3000 employee-app
 ```
 donde ```MONGODB_URI``` es la direccion mongo de mongoDB puede ser una instalacion local, un contendedor o MongoAtlas.
+
 La imagen de Dockerfile se la puede encontrar en DockerHub:
-docker pull gmaldo/employee_app
+```bash
+docker pull gmaldo/employee_app:1.0.0
+```
+Pagina de dockerhub: https://hub.docker.com/r/gmaldo/employee_app
+
  ## 🐙 Docker Compose
 
 El archivo `docker-compose.yml` orquesta dos servicios principales para no tener que correr MongoDB en otro lado:
