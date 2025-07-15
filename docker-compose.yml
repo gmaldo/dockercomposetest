@@ -16,8 +16,8 @@ services:
 
   # Express App Service
   app:
-    image: gmaldo/employee_app:1.0.0 
-    build: .
+    image: gmaldo/employee_app:1.0.1
+    build: ./employee_app
     container_name: employee_app
     restart: unless-stopped
     ports:
@@ -29,7 +29,6 @@ services:
       - mongodb
     networks:
       - employee_network
-
 
 # Volumes
 volumes:
