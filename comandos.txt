@@ -1,0 +1,13 @@
+# 1. Aplicar todos los manifiestos de Kubernetes (Deployments, Services, StatefulSet).
+# El error sobre docker-compose.yml es esperado y se puede ignorar.
+kubectl apply -f .
+
+# 2. Inicializar el Replica Set de MongoDB.
+# Nos conectamos al primer pod (mongo-0) y le indicamos que cree un conjunto de réplicas
+# con los otros dos pods.
+kubectl exec -it mongo-0 -- mongosh --eval 'rs.initiate({_id: "rs0", members: [{_id: 0, host: "mongo-0.mongo-headless-service:27017"}, {_id: 1, host: "mongo-1.mongo-headless-service:27017"}, {_id: 2, host: "mongo-2.mongo-headless-service:27017"}]})'
+
+# 3. Verificar el estado de los Pods y Services.
+# Este comando muestra si todos los contenedores están corriendo y qué puerto NodePort
+# se ha asignado al servicio de la aplicación.
+kubectl get pods,svc

@@ -1,3 +1,6 @@
+- Para ver la configuración de Jenkins, revisa el archivo [Jenkins.md](./Jenkins.md).
+- Para desplegar en Kubernetes, sigue las instrucciones en [kubernetes.md](./kubernetes.md).
+
 # Api Manager de Empleados
 
 Es una aplicación de gestión de empleados construida con Express.js, MongoDB y Faker.js que permite generar y gestionar datos ficticios de empleados y departamentos de manera sencilla. La misma se encuentra pensada para subir a un contenedor de Docker 🐳.
