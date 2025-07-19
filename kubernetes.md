@@ -53,16 +53,29 @@ docker build -t gmaldo/employee_app:1.0.1 ./employee_app
 - `-t gmaldo/employee_app:1.0.1`: Asigna el nombre y la etiqueta a la imagen. Este nombre debe coincidir con el que se usa en `app-deployment.yaml`.
 - `./employee_app`: Es la ruta al directorio que contiene el `Dockerfile`.
 
-*Nota: Si no usas un registro público como Docker Hub, asegúrate de que tu clúster de Kubernetes tenga acceso a la imagen. Para Minikube, puedes cargar la imagen directamente en el clúster con `minikube image load gmaldo/employee_app:1.0.1`.*
-
 
 ### Paso 1: Aplicar los Manifiestos
-Este comando crea todos los recursos definidos en los archivos `.yaml`.
+
+Para crear los recursos en Kubernetes, puedes aplicar cada manifiesto de forma individual. Es una buena práctica aplicar primero los componentes de la base de datos (`mongo-statefulset.yaml` y `mongo-headless-service.yaml`) y luego la aplicación.
+
+```bash
+# Aplicar los manifiestos de MongoDB
+kubectl apply -f mongo-headless-service.yaml
+kubectl apply -f mongo-statefulset.yaml
+
+# Aplicar los manifiestos de la aplicación
+kubectl apply -f app-deployment.yaml
+kubectl apply -f app-service.yaml
+```
+
+#### Alternativa: Aplicar todos los manifiestos a la vez
+
+También puedes aplicar todos los archivos `.yaml` del directorio actual con un solo comando.
 
 ```bash
 kubectl apply -f .
 ```
-*(Nota: Es normal ver un error sobre `docker-compose.yml`, ya que no es un manifiesto de Kubernetes. Puedes ignorarlo).*
+**¡Atención!** Este comando intentará aplicar **todos** los archivos del directorio. Es muy probable que muestre un error al intentar procesar `docker-compose.yml`, ya que no es un manifiesto válido de Kubernetes. Puedes ignorar este error específico, ya que los manifiestos correctos (`.yaml`) sí se habrán aplicado.
 
 ### Paso 2: Inicializar el Replica Set de MongoDB
 Una vez que los pods de MongoDB están corriendo, hay que configurarlos para que trabajen como un clúster.
@@ -79,32 +92,27 @@ Comprueba que todos los pods y servicios estén corriendo correctamente.
 kubectl get pods,svc
 ```
 Busca que todos los pods tengan el estado `Running`.
+Ejemplo de los comandos corriendo y su salida esperada:
+![Ejemplo de los comandos corriendo](https://i.ibb.co/h1KSxJZX/Captura-de-pantalla-2025-07-18-a-la-s-9-16-59-p-m.png)
+
+
 
 ### Paso 4: Obtener el Puerto y Acceder a la Aplicación
 
 1.  **Encuentra el puerto asignado:** En la salida del comando anterior, localiza la línea del servicio `employee-app-service`.
     ```
     NAME                     TYPE        CLUSTER-IP     EXTERNAL-IP   PORT(S)          AGE
-    employee-app-service     NodePort    10.102.71.95   <none>        3000:30898/TCP   5m
+    employee-app-service     NodePort    10.102.71.95   <none>        3000:31355/TCP   5m
     ```
-    El puerto asignado es el que aparece después de los dos puntos (en este ejemplo, `30898`).
+    El puerto asignado es el que aparece después de los dos puntos (en este ejemplo, `31355`).
 
-2.  **Obtén la IP de tu clúster:**
-    - Si usas **Minikube**:
-      ```bash
-      minikube ip
-      ```
-    - Para otras configuraciones de Kubernetes (como Docker Desktop, etc.):
-      ```bash
-      kubectl get nodes -o wide
-      ```
-      Usa la IP que aparece en la columna `INTERNAL-IP`.
+Probando la aplicacion:
 
-3.  **Accede a la aplicación:** Abre la siguiente URL en tu navegador, reemplazando los valores correspondientes:
-    ```
-    http://<IP-DEL-NODO>:<PUERTO-ASIGNADO>
-    ```
-    Por ejemplo: `http://192.168.49.2:30898`
+Los copandos en [README.md](./README.md) se ejecutan así para probar la aplicacion:
+
+![Ejemplo de los comandos corriendo](https://i.ibb.co/RTyMbzZP/Captura-de-pantalla-2025-07-18-a-la-s-9-23-20-p-m.png)
+
+
 
 ### Paso 5 (Opcional): Conexión Directa a las Réplicas de MongoDB
 Para inspeccionar el estado del clúster de MongoDB con una herramienta como MongoDB Compass, necesitas reenviar los puertos de los pods a tu máquina local.
@@ -143,3 +151,37 @@ Si necesitas conectarte a un nodo específico (por ejemplo, para verificar un se
   mongodb://localhost:27019/employee_db?directConnection=true
   ```
 Cuando se conecta puede observar que todas las replicas tienen los mismos datos. (generados por generate data)
+
+### Paso 6: Eliminar los Recursos del Clúster
+
+Para apagar y eliminar todos los componentes desplegados, es una buena práctica hacerlo en el orden inverso a la creación.
+
+```bash
+# Eliminar los manifiestos de la aplicación
+kubectl delete -f app-service.yaml
+kubectl delete -f app-deployment.yaml
+
+# Eliminar los manifiestos de MongoDB
+kubectl delete -f mongo-statefulset.yaml
+kubectl delete -f mongo-headless-service.yaml
+```
+
+#### Alternativa: Eliminar todos los recursos a la vez
+
+También puedes eliminar todos los recursos creados a partir de los manifiestos del directorio actual con un solo comando.
+
+```bash
+kubectl delete -f .
+```
+Este comando eliminará todos los `Deployments`, `StatefulSets`, `Services` y `Pods` definidos en los archivos `.yaml`.
+
+**Importante: Los datos persistentes no se eliminan por defecto.**
+
+El comando `kubectl delete` **no elimina los volúmenes persistentes (`PersistentVolumeClaim` o PVC)** asociados al `StatefulSet` de MongoDB. Esta es una medida de seguridad para prevenir la pérdida accidental de datos.
+
+Si deseas eliminar completamente la base de datos y su contenido, debes borrar los PVCs de forma explícita después de haber eliminado los pods:
+
+```bash
+kubectl delete pvc -l app=mongo
+```
+Este comando busca y elimina cualquier `PersistentVolumeClaim` que tenga la etiqueta `app=mongo`, que fue la que se definió en el manifiesto `mongo-statefulset.yaml`.

@@ -11,11 +11,14 @@ A continuación se detallan los pasos para configurar y ejecutar el pipeline de 
     *   Docker Commons Plugin
     *   Docker Pipeline
     *   Docker Plugin
-    *   *(Aquí puedes agregar un enlace a una captura de pantalla mostrando los plugins instalados)*
+![Plugins docker](https://i.ibb.co/kV14PpYV/Captura-de-pantalla-2025-07-18-a-la-s-8-27-15-p-m.png)
 
-3.  **Permisos de Docker para Jenkins:** El usuario que ejecuta Jenkins debe tener permisos para administrar Docker. Generalmente, esto se logra agregando el usuario `jenkins` al grupo `docker` en el servidor donde se ejecuta Jenkins:
+1.  **Permisos de Docker para Jenkins:** El usuario que ejecuta Jenkins debe tener permisos para administrar Docker. Generalmente, esto se logra agregando el usuario `jenkins` al grupo `docker` en el servidor donde se ejecuta Jenkins:
     ```bash
-    sudo usermod -aG docker jenkins
+    addgroup docker
+    addgroup jenkins docker
+    chgrp docker /var/run/docker.sock
+    chmod 660 /var/run/docker.sock
     ```
     Después de ejecutar este comando, es necesario reiniciar el servicio de Jenkins.
 
@@ -28,7 +31,7 @@ A continuación se detallan los pasos para configurar y ejecutar el pipeline de 
     *   En `Username`, ingresa tu ID de Docker Hub.
     *   En `Password`, ingresa tu contraseña o un token de acceso de Docker Hub.
     *   En `ID`, ingresa `dockerhub_id`. Este ID es el que se utiliza en el `Jenkinsfile`.
-    *   *(Aquí puedes agregar un enlace a una captura de pantalla de la configuración de credenciales)*
+![Credencial dockerhub](https://i.ibb.co/Vc83W6FY/Captura-de-pantalla-2025-07-18-a-la-s-8-28-00-p-m.png)
 
 ## Creación y Ejecución del Pipeline
 
